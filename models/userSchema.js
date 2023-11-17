@@ -28,6 +28,30 @@ const userSchema = new mongoose.Schema(
             type: String,
             require: true
         },
+        baseScore: {
+            type: Number,
+            required: true
+        },
+        currentScore: {
+            type: Number,
+            required: true
+        },
+        twitter: {
+            type: String,
+            required: true,
+        },
+        facebook: {
+            type: String,
+            required: true,
+        },
+        instagram: {
+            type: String,
+            required: true,
+        },
+        linkedin: {
+            type: String,
+            required: true,
+        },
         tokens: [
             {
                 token: {

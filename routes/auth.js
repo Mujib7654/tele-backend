@@ -2,11 +2,10 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
-const cookie = require('cookie');
 const router = express.Router();
 require('../config/connectDB');
 const User = require('../models/userSchema');
-// const authenticate = require('../middleware/Authenticate');
+const authenticate = require('../middleware/Authenticate');
 
 router.use(cookieParser());
 
@@ -16,9 +15,9 @@ router.get('/', (req, res) =>{
 });
 
 router.post('/register', async(req, res) => {
-    const {name, email, phone, password, work, cpassword} = req.body;
+    const {name, email, phone, password, cpassword, facebook, instagram, twitter, linkedin} = req.body;
 
-    if(!name || !email || !phone || !password || !work || !cpassword)
+    if(!name || !email || !phone || !password ||!cpassword ||!facebook ||!instagram ||!twitter ||!linkedin)
     {
         return res.status(422).json({error: "Please fill all the fields properly"});
     }
@@ -34,7 +33,9 @@ router.post('/register', async(req, res) => {
             return res.status(422).json({ error:"Password and Confirm Password does not match!" });
         }
         else{
-            const user = new User({name, email, phone, password, work, cpassword});
+            const baseScore = getRandomInt(5, 10); 
+            const currentScore = getRandomInt(2, 15);
+            const user = new User({name, email, phone, password, cpassword, baseScore, currentScore, facebook, instagram, twitter, linkedin});
 
             const userRegister = await user.save();
 
@@ -46,6 +47,13 @@ router.post('/register', async(req, res) => {
         console.log(err);
     }
 });
+
+// Helper function to get a random integer within a range
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
 
 router.post('/signin', async(req,res) => {
     try {
@@ -74,13 +82,13 @@ router.post('/signin', async(req,res) => {
     }
 });
 
-// router.get("/about", authenticate, (req, res) => {
-//     try {
-//       res.send(req.rootUser);
-//     } catch (error) {
-//       res.status(500).json({ error: "Something went wrong or invalid token" });
-//       console.log(`${error}`);
-//     }
-// });
+router.get("/about", authenticate, (req, res) => {
+    try {
+      res.send(req.rootUser);
+    } catch (error) {
+      res.status(500).json({ error: "Something went wrong or invalid token" });
+      console.log(`${error}`);
+    }
+});
 
 module.exports = router;
