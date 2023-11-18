@@ -1,4 +1,5 @@
 const express = require('express');
+const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
@@ -39,8 +40,11 @@ router.post('/register', async(req, res) => {
 
             const userRegister = await user.save();
 
-            if(userRegister){
-                res.status(201).json({message: "User Registered Successfully"});
+            if (userRegister) {
+                if (currentScore < baseScore) {
+                    sendScoreAlertEmail(email, currentScore, baseScore);
+                }
+                res.status(201).json({ message: "User Registered Successfully" });
             }
         }
     } catch (err) {
@@ -54,6 +58,48 @@ function getRandomInt(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+
+function sendScoreAlertEmail(email, currentScore, baseScore) {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'sentimentsync@gmail.com',  
+            pass: 'dougfbsnjrqjbmel'  
+        }
+    });
+
+    const mailOptions = {
+        from: 'sentimentsync@gmail.com', 
+        to: email,
+        subject: 'Urgent: Decline in Your User Sentiment Score',
+        text: `
+            Dear User,
+    
+            I hope this email finds you well. Our recent analysis indicates a decline in your User Sentiment Score over the past month. This suggests a potential impact on how your audience perceives your brand.
+
+            Your current score (${currentScore}) is lower than your base score (${baseScore}). Please take action.
+    
+            To address this, we recommend focusing on enhancing your social reach:
+    
+            - Engagement Metrics: Evaluate social media interaction levels.
+            - Content Relevance: Tailor content to audience needs.
+            - Response Time: Ensure timely responses to inquiries.
+            - Brand Messaging: Align messaging with audience values.
+    
+            We're here to assist further and offer insights to help improve your online sentiment. Feel free to reach out for a consultation.
+    
+            Best Regards,
+            SentimentSync
+        `
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+}
 
 router.post('/signin', async(req,res) => {
     try {
@@ -82,13 +128,18 @@ router.post('/signin', async(req,res) => {
     }
 });
 
-router.get("/about", authenticate, (req, res) => {
+router.get("/analysis", authenticate, (req, res) => {
     try {
       res.send(req.rootUser);
     } catch (error) {
       res.status(500).json({ error: "Something went wrong or invalid token" });
       console.log(`${error}`);
     }
+});
+
+router.get('/logout', (req,res) => {
+    console.log('Logout');
+    res.status(200).send('Logout Successfully');
 });
 
 module.exports = router;
